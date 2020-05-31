@@ -74,8 +74,12 @@ template(name="minicard")
                   +viewer
                     = definition.name
               .minicard-custom-field-item
-                +viewer
-                  = trueValue
+                if $eq definition.type "currency"
+                  +viewer
+                    = formattedCurrencyCustomFieldValue(definition)
+                else
+                  +viewer
+                    = trueValue
 
     if getAssignees
       .minicard-assignees.js-minicard-assignees
@@ -103,7 +107,9 @@ template(name="minicard")
       if getVoteQuestion
         .badge.badge-state-image-only(title=getVoteQuestion)
           span.badge-icon.fa.fa-thumbs-up
+          span.badge-text {{ voteCountPositive }}
           span.badge-icon.fa.fa-thumbs-down
+          span.badge-text {{ voteCountNegative }}
       if attachments.count
         .badge
           span.badge-icon.fa.fa-paperclip

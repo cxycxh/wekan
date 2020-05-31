@@ -1075,6 +1075,7 @@ if (Meteor.isServer) {
     incrementBoards(_.difference(newIds, oldIds), +1);
   });
 
+  // Override getUserId so that we can TODO get the current userId
   const fakeUserId = new Meteor.EnvironmentVariable();
   const getUserId = CollectionHooks.getUserId;
   CollectionHooks.getUserId = () => {
@@ -1108,6 +1109,10 @@ if (Meteor.isServer) {
         });
         */
 
+          const Future = require('fibers/future');
+          let future1 = new Future();
+          let future2 = new Future();
+          let future3 = new Future();
         Boards.insert(
           {
             title: TAPi18n.__('templates'),
@@ -1135,6 +1140,7 @@ if (Meteor.isServer) {
                 Users.update(fakeUserId.get(), {
                   $set: { 'profile.cardTemplatesSwimlaneId': swimlaneId },
                 });
+                  future1.return();
               },
             );
 
@@ -1152,6 +1158,7 @@ if (Meteor.isServer) {
                 Users.update(fakeUserId.get(), {
                   $set: { 'profile.listTemplatesSwimlaneId': swimlaneId },
                 });
+                  future2.return();
               },
             );
 
@@ -1169,15 +1176,22 @@ if (Meteor.isServer) {
                 Users.update(fakeUserId.get(), {
                   $set: { 'profile.boardTemplatesSwimlaneId': swimlaneId },
                 });
+                  future3.return();
               },
             );
           },
         );
+          // HACK
+          future1.wait();
+          future2.wait();
+          future3.wait();
       });
     });
   }
 
-  Users.after.insert((userId, doc) => {
+    Users.after.insert((userId, doc) => {
+        // HACK
+      doc = Users.findOne({_id: doc._id});
     if (doc.createdThroughApi) {
       // The admin user should be able to create a user despite disabling registration because
       // it is two different things (registration and creation).
@@ -1240,6 +1254,25 @@ if (Meteor.isServer) {
       Authentication.checkLoggedIn(req.userId);
       const data = Meteor.users.findOne({ _id: req.userId });
       delete data.services;
+
+      // get all boards where the user is member of
+      let boards = Boards.find(
+        {
+          type: 'board',
+          'members.userId': req.userId,
+        },
+        {
+          fields: { _id: 1, members: 1 },
+        },
+      );
+      boards = boards.map(b => {
+        const u = b.members.find(m => m.userId === req.userId);
+        delete u.userId;
+        u.boardId = b._id;
+        return u;
+      });
+
+      data.boards = boards;
       JsonRoutes.sendResult(res, {
         code: 200,
         data,
@@ -1292,9 +1325,29 @@ if (Meteor.isServer) {
     try {
       Authentication.checkUserId(req.userId);
       const id = req.params.userId;
+
+      // get all boards where the user is member of
+      let boards = Boards.find(
+        {
+          type: 'board',
+          'members.userId': id,
+        },
+        {
+          fields: { _id: 1, members: 1 },
+        },
+      );
+      boards = boards.map(b => {
+        const u = b.members.find(m => m.userId === id);
+        delete u.userId;
+        u.boardId = b._id;
+        return u;
+      });
+
+      const user = Meteor.users.findOne({ _id: id });
+      user.boards = boards;
       JsonRoutes.sendResult(res, {
         code: 200,
-        data: Meteor.users.findOne({ _id: id }),
+        data: user,
       });
     } catch (error) {
       JsonRoutes.sendResult(res, {

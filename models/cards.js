@@ -278,7 +278,7 @@ Cards.attachSchema(
        */
       type: Number,
       decimal: true,
-      defaultValue: '',
+      defaultValue: 0,
     },
     subtaskSort: {
       /**
@@ -340,6 +340,10 @@ Cards.attachSchema(
       type: Boolean,
       defaultValue: false,
     },
+    'vote.allowNonBoardMembers': {
+      type: Boolean,
+      defaultValue: false,
+    },
   }),
 );
 
@@ -347,8 +351,14 @@ Cards.allow({
   insert(userId, doc) {
     return allowIsBoardMember(userId, Boards.findOne(doc.boardId));
   },
-  update(userId, doc) {
-    return allowIsBoardMember(userId, Boards.findOne(doc.boardId));
+
+  update(userId, doc, fields) {
+    // Allow board members or logged in users if only vote get's changed
+    return (
+      allowIsBoardMember(userId, Boards.findOne(doc.boardId)) ||
+      (_.isEqual(fields, ['vote', 'modifiedAt', 'dateLastActivity']) &&
+        !!userId)
+    );
   },
   remove(userId, doc) {
     return allowIsBoardMember(userId, Boards.findOne(doc.boardId));
@@ -428,6 +438,21 @@ Cards.helpers({
     return _id;
   },
 
+  link(boardId, swimlaneId, listId) {
+    // TODO is there a better method to create a deepcopy?
+    linkCard = JSON.parse(JSON.stringify(this));
+    // TODO is this how it is meant to be?
+    linkCard.linkedId = linkCard.linkedId || linkCard._id;
+    linkCard.boardId = boardId;
+    linkCard.swimlaneId = swimlaneId;
+    linkCard.listId = listId;
+    linkCard.type = 'cardType-linkedCard';
+    delete linkCard._id;
+    // TODO shall we copy the labels for a linked card?!
+    delete linkCard.labelIds;
+    return Cards.insert(linkCard);
+  },
+
   list() {
     return Lists.findOne(this.listId);
   },
@@ -505,6 +530,7 @@ Cards.helpers({
   },
 
   cover() {
+    if (!this.coverId) return false;
     const cover = Attachments.findOne(this.coverId);
     // if we return a cover before it is fully stored, we will get errors when we try to display it
     // todo XXX we could return a default "upload pending" image in the meantime?
@@ -1048,6 +1074,29 @@ Cards.helpers({
     }
   },
 
+  getVoteEnd() {
+    if (this.isLinkedCard()) {
+      const card = Cards.findOne({ _id: this.linkedId });
+      if (card && card.vote) return card.vote.end;
+      else return null;
+    } else if (this.isLinkedBoard()) {
+      const board = Boards.findOne({ _id: this.linkedId });
+      if (board && board.vote) return board.vote.end;
+      else return null;
+    } else if (this.vote) {
+      return this.vote.end;
+    } else {
+      return null;
+    }
+  },
+  expiredVote() {
+    let end = this.getVoteEnd();
+    if (end) {
+      end = moment(end);
+      return end.isBefore(new Date());
+    }
+    return false;
+  },
   voteMemberPositive() {
     if (this.vote && this.vote.positive)
       return Users.find({ _id: { $in: this.vote.positive } });
@@ -1153,6 +1202,26 @@ Cards.helpers({
   isTemplateCard() {
     return this.type === 'template-card';
   },
+
+  votePublic() {
+    if (this.vote) return this.vote.public;
+    return null;
+  },
+  voteAllowNonBoardMembers() {
+    if (this.vote) return this.vote.allowNonBoardMembers;
+    return null;
+  },
+  voteCountNegative() {
+    if (this.vote && this.vote.negative) return this.vote.negative.length;
+    return null;
+  },
+  voteCountPositive() {
+    if (this.vote && this.vote.positive) return this.vote.positive.length;
+    return null;
+  },
+  voteCount() {
+    return this.voteCountPositive() + this.voteCountNegative();
+  },
 });
 
 Cards.mutations({
@@ -1184,6 +1253,48 @@ Cards.mutations({
         archived: false,
       },
     };
+  },
+
+  moveToEndOfList({ listId } = {}) {
+    let swimlaneId = this.swimlaneId;
+    const boardId = this.boardId;
+    let sortIndex = 0;
+
+    // This should never happen, but there was a bug that was fixed in commit
+    // ea0239538a68e225c867411a4f3e0d27c158383.
+    if (!swimlaneId) {
+      const board = Boards.findOne(boardId);
+      swimlaneId = board.getDefaultSwimline()._id;
+    }
+    // Move the minicard to the end of the target list
+    let parentElementDom = $(`#swimlane-${this.swimlaneId}`).get(0);
+    if (!parentElementDom) parentElementDom = $(':root');
+
+    const lastCardDom = $(parentElementDom)
+      .find(`#js-list-${listId} .js-minicard:last`)
+      .get(0);
+    if (lastCardDom) sortIndex = Utils.calculateIndex(lastCardDom, null).base;
+
+    return this.moveOptionalArgs({
+      boardId,
+      swimlaneId,
+      listId,
+      sort: sortIndex,
+    });
+  },
+
+  moveOptionalArgs({ boardId, swimlaneId, listId, sort } = {}) {
+    boardId = boardId || this.boardId;
+    swimlaneId = swimlaneId || this.swimlaneId;
+    // This should never happen, but there was a bug that was fixed in commit
+    // ea0239538a68e225c867411a4f3e0d27c158383.
+    if (!swimlaneId) {
+      const board = Boards.findOne(boardId);
+      swimlaneId = board.getDefaultSwimline()._id;
+    }
+    listId = listId || this.listId;
+    if (sort === undefined || sort === null) sort = this.sort;
+    return this.move(boardId, swimlaneId, listId, sort);
   },
 
   move(boardId, swimlaneId, listId, sort) {
@@ -1476,12 +1587,13 @@ Cards.mutations({
       },
     };
   },
-  setVoteQuestion(question, publicVote) {
+  setVoteQuestion(question, publicVote, allowNonBoardMembers) {
     return {
       $set: {
         vote: {
           question,
           public: publicVote,
+          allowNonBoardMembers,
           positive: [],
           negative: [],
         },
@@ -1493,6 +1605,16 @@ Cards.mutations({
       $unset: {
         vote: '',
       },
+    };
+  },
+  setVoteEnd(end) {
+    return {
+      $set: { 'vote.end': end },
+    };
+  },
+  unsetVoteEnd() {
+    return {
+      $unset: { 'vote.end': '' },
     };
   },
   setVote(userId, forIt) {
@@ -2156,7 +2278,7 @@ if (Meteor.isServer) {
     const check = Users.findOne({
       _id: req.body.authorId,
     });
-    const members = req.body.members || [req.body.authorId];
+    const members = req.body.members;
     const assignees = req.body.assignees;
     if (typeof check !== 'undefined') {
       const id = Cards.direct.insert({
@@ -2557,6 +2679,52 @@ if (Meteor.isServer) {
         data: {
           _id: paramCardId,
         },
+      });
+    },
+  );
+
+  /**
+   * @operation get_cards_by_custom_field
+   * @summary Get all Cards that matchs a value of a specific custom field
+   *
+   * @param {string} boardId the board ID
+   * @param {string} customFieldId the list ID
+   * @param {string} customFieldValue the value to look for
+   * @return_type [{_id: string,
+   *                title: string,
+   *                description: string,
+   *                listId: string
+   *                swinlaneId: string}]
+   */
+  JsonRoutes.add(
+    'GET',
+    '/api/boards/:boardId/cardsByCustomField/:customFieldId/:customFieldValue',
+    function(req, res) {
+      const paramBoardId = req.params.boardId;
+      const paramCustomFieldId = req.params.customFieldId;
+      const paramCustomFieldValue = req.params.customFieldValue;
+
+      Authentication.checkBoardAccess(req.userId, paramBoardId);
+      JsonRoutes.sendResult(res, {
+        code: 200,
+        data: Cards.find({
+          boardId: paramBoardId,
+          customFields: {
+            $elemMatch: {
+              _id: paramCustomFieldId,
+              value: paramCustomFieldValue,
+            },
+          },
+          archived: false,
+        }).map(function(doc) {
+          return {
+            _id: doc._id,
+            title: doc.title,
+            description: doc.description,
+            listId: doc.listId,
+            swinlaneId: doc.swinlaneId,
+          };
+        }),
       });
     },
   );

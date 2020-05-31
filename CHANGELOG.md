@@ -1,5 +1,174 @@
 # Upcoming Wekan release
 
+This release adds the following new platforms:
+
+- [Using arm64 bundle on Raspberry Pi OS arm64 with MongoDB 4.2.x for RasPi3 and
+  RasPi4](https://github.com/wekan/wekan/wiki/Raspberry-Pi#raspberry-pi-os-arm64-with-mongodb-42x).
+  Thanks to Raspberry Pi OS devs, MongoDB devs and xet7.
+
+and adds the following new features:
+
+- [Add Calendar Month Event List view](https://github.com/wekan/wekan/commit/f73ea218eefba3f0d6c642849dfede9e03052d25).
+  Thanks to xet7.
+
+Thanks to above GitHub users for their contributions and translators for their translations.
+
+# v4.10 2020-05-30 Wekan release
+
+This release adds the following new features:
+
+- [Added an API to get the cards for a specific custom field value](https://github.com/wekan/wekan/pulls/3131).
+  Thanks to gvespignani70.
+
+and adds the following updates:
+
+- [Upgrade to Node v12.17.0](https://github.com/wekan/wekan/commit/3ade9d95a69b269c345127e1755e1b539dc07263).
+  Thanks to Node developers and xet7.
+
+and fixes the following bugs:
+
+- [Fix email verification in `sendSMTPTestEmail`](https://github.com/wekan/wekan/pull/3135).
+  Thanks to marc1006.
+- [Try to Fix Registration broken "Templates board id is required" with ugly hack. If it works, ugly becomes
+  beautiful](https://github.com/wekan/wekan/pull/3140).
+  Thanks to marc1006.
+
+Thanks to above GitHub users for their contributions and translators for their translations.
+
+# v4.09 2020-05-27 Wekan release
+
+This release fixes the following bugs:
+
+- [Fix vote export & export/import currency custom field to CSV/TSV](https://github.com/wekan/wekan/pull/3128).
+  Thanks to brymut.
+
+Thanks to above GitHub users for their contributions and translators for their translations.
+
+# v4.08 2020-05-26 Wekan release
+
+This release adds the following new features:
+
+- [Add the 'Currency' Custom Field type](https://github.com/wekan/wekan/pull/3123).
+  Thanks to habenamare.
+
+and adds the following updates:
+
+- [Add some changes to Modern theme](https://github.com/wekan/wekan/commit/6a1bc167cf10e75d61b3196db9eac2978d70ad8e).
+  Thanks to jeroenstoker and xet7.
+
+and fixes the following bugs:
+
+- [Fix typo that caused parse error](https://github.com/wekan/wekan/commit/351d9d0c9577c9d543d543bc12a51388b0141324).
+  Thanks to xet7.
+
+Thanks to above GitHub users for their contributions and translators for their translations.
+
+# v4.07 2020-05-26 Wekan release
+
+This release fixes the following bugs:
+
+- [Fix move selection](https://github.com/wekan/wekan/pull/3120).
+  Thanks to marc1006.
+- [Fix Python API generation](https://github.com/wekan/wekan/pull/3121).
+  Thanks to marc1006.
+- [Fix default value of `sort`](https://github.com/wekan/wekan/pull/3122).
+  Thanks to marc1006.
+
+Thanks to above GitHub users for their contributions and translators for their translations.
+
+# v4.06 2020-05-25 Wekan release
+
+This release fixes the following bugs:
+
+- [Fix Card export CSV, check for vote
+  undefined](https://github.com/wekan/wekan/commit/8eafa1ac66fdcf5fb5f0a95aa6cfee454ddad67f).
+  Thanks to xet7.
+
+Thanks to above GitHub users for their contributions and translators for their translations.
+
+# v4.05 2020-05-25 Wekan release
+
+This release adds the following new features:
+
+- [Import/Export Custom Fields in CSV/TSV](https://github.com/wekan/wekan/pull/3115).
+  Thanks to brymut.
+
+and adds the following updates:
+
+- [Update packages](https://github.com/wekan/wekan/commit/3b44acd87c35340bf9fe5d210f4402f1b1a1dfdf).
+  Thanks to xet7.
+
+and fixes the following bugs:
+
+- Try to fix Snap [1](https://github.com/wekan/wekan/commit/6fad68b9b9afd8de7074037d73eeac40f6a3f7c1), [2](https://github.com/wekan/wekan/commit/b737adfcdfc9b8084a7eb84420a89c014bbec1fb). Later reverted those like other ostrio-files changes too.
+  Thanks to xet7.
+- [Add default attachments store path /var/snap/wekan/common/uploads where attachments will be
+  stored](https://github.com/wekan/wekan/commit/c61a126c8bcb25a1eda0203b89c990ae31de7a70).
+  Thanks to xet7.
+- [Make scrollParentContainer() more robust as it's used in a timeout callback. Example exception: Exception in setTimeout callback: TypeError: Cannot read property 'parentComponent' of null. Probably there is a better fix for this](https://github.com/wekan/wekan/commit/d5fbd50b760b1d3b84b5b4e8af3a8ed7608e2918).
+  Thanks to marc1006.
+- [Fix error link not available. Fixes: Exception in template helper: TypeError: Cannot read property 'link' of
+undefined](https://github.com/wekan/wekan/commit/b7105d7b5712dcdbf9dadebfddaba7691810da5c).
+  Thanks to marc1006.
+- [Fix minicard cover functionality. Otherwise, if `this.coverId` is undefined then `Attachments.findOne()` would return any
+attachment](https://github.com/wekan/wekan/commit/66d35a15280795b76a81c3e59cebbd2a29e4dff8).
+  Thanks to marc1006.
+- [Some fixes suggested by deepcode.ai](https://github.com/wekan/wekan/pull/3112).
+  Thanks to marc1006.
+- [Sorry marc1006, I had to revert deepcode.ai arrow function fixes because Python API docs generator does not work all when code has arrow functions](https://github.com/wekan/wekan/commit/f9018fc3a87080d8d97c371e29a8f3f0a20ca932).
+  Thanks to xet7.
+- [Move In Progress ostrio-files changes to separate branch, and revert ostrio-files changes, so that:
+  Export to CSV/TSV with custom fields works, Attachments are not exported to disk,
+  It is possible to build arm64/s390x versions
+  again](https://github.com/wekan/wekan/commit/d52affe65893f17bab59bb43aa9f5afbb54993d3).
+  Thanks to xet7.
+
+Thanks to above GitHub users for their contributions and translators for their translations.
+
+# v4.04 2020-05-24 Wekan release
+
+Please use v4.05 or newer instead, that works better.
+
+This release adds the following features:
+
+- [Found Time Tracking GPLv3 software "Titra" with integration to Wekan](https://github.com/wekan/wekan/wiki/Time-Tracking).
+  Thanks to willhseitz.
+- [Theme: Natural](https://github.com/wekan/wekan/pull/3098).
+  You can select it from Board Settings / Change color / natural.
+  Thanks to compumatter and helioguardabaxo.
+- [Theme: Modern](https://github.com/wekan/wekan/pull/3106).
+  Thanks to jeroenstoker com and helioguardabaxo.
+- [Export board to HTML static page .zip archive](https://github.com/wekan/wekan/pull/3043).
+  Thanks to Lewiscowles1986.
+
+and fixes the following bugs:
+
+- [Change the swimlaneid of a card only if a new target swimlaneid is selected](https://github.com/wekan/wekan/pull/3108).
+  Thanks to marc1006.
+- [Set '*' as default value for swimlane and list name in card move action](https://github.com/wekan/wekan/pull/3109).
+  Thanks to hickorysb and marc1006.
+
+Thanks to above GitHub users for their contributions and translators for their translations.
+
+# v4.03 2020-05-16 Wekan release
+
+This release adds the following features:
+
+- [Theme: Clearblue](https://github.com/wekan/wekan/pull/3093).
+  You can select it from Board Settings / Change color / clearblue.
+  Thanks to CidKramer.
+
+and fixes the following bugs:
+
+- [Fix Can't Scroll on All Boards on mobile phone. Added drag handles](https://github.com/wekan/wekan/issues/3096).
+  Thanks to xet7.
+- [Try to fix Sandstorm Wekan Export menu](https://github.com/wekan/wekan/commit/1ac11d92ba8f38981c87db25e5b5e1fa2adb6968).
+  Thanks to xet7.
+
+Thanks to above GitHub users for their contributions and translators for their translations.
+
+# v4.02 2020-05-15 Wekan release
+
 This release adds the following server platforms:
 
 - [Android arm64/x64](https://github.com/wekan/wekan/wiki/Android).
@@ -8,17 +177,42 @@ This release adds the following server platforms:
 and adds the following features:
 
 - [Install Wekan to mobile homescreen icon and use fullscreen
-  PWA](https://github.com/commit/8d5adc04645e3e71423f16869f39b8d79969bccd).
+  PWA](https://github.com/wekan/wekan/commit/8d5adc04645e3e71423f16869f39b8d79969bccd).
   [Docs for iOS and Android at wiki PWA page](https://github.com/wekan/wekan/wiki/PWA).
   Thanks to xet7.
+- [Add options to rebuild-wekan.sh to run Meteor in development mode where after
+  file change it rebuilds](https://github.com/wekan/wekan/commit/5f915ef966170ea7baca7ddeb11319bc08a26fef).
+  Thanks to xet7.
+
+and adds the following updates:
+
+- [Update dependencies](https://github.com/wekan/wekan/commit/75bdd33fda58ea0233f5b38c466bcb1a9b0406ab).
+  Thanks to xet7.
+
+and adds the following translations:
+
+- [Add Spanish (Chile)](https://github.com/wekan/wekan/commit/96507e6777ed77a324eaec9799c5b46b0d25ad26).
+  Thanks to isos, Transifex user.
 
 and fixes the following bugs:
 
+- [Fix Deleting linked card makes board not load](https://github.com/wekan/wekan/issues/2785).
+  Thanks to marc1006 and xet7.
 - [Fix getStartDayOfWeek once again](https://github.com/wekan/wekan/pull/3061).
   Thanks to marc1006.
 - [Fix shortcuts list and support card shortcuts when hovering
   a card](https://github.com/wekan/wekan/pull/3066).
   Thanks to marc1006.
+- [Add white-space:normal to copy-to-clipboard button in card
+  details](https://github.com/wekan/wekan/pull/3075).
+  Thanks to helioguardabaxo.
+- [Fix avatar-image class](https://github.com/wekan/wekan/pull/3083).
+  Thanks to krupupakku.
+- [Fix Swimlanes ID missing in new boards](https://github.com/wekan/wekan/pull/3088).
+  Thanks to krupupakku.
+- [Fix REST API so Create card does now allow an empty member
+  list](https://github.com/wekan/wekan/pull/3084).
+  Thanks to wackazong.
 
 Thanks to above GitHub users for their contributions and translators for their translations.
 

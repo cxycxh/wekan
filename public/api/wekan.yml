@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   title: Wekan REST API
-  version: v4.01
+  version: v4.10
   description: |
     The REST API allows you to control and extend Wekan with ease.
 
@@ -649,6 +649,35 @@ paths:
         '200':
           description: |-
             200 response
+  /api/boards/{board}/cardsByCustomField/{customField}/{customFieldValue}:
+    get:
+      operationId: get_board_customFieldValue
+      tags:
+        - Cards
+      parameters:
+        - name: board
+          in: path
+          description: the board value
+          type: string
+          required: true
+        - name: customField
+          in: path
+          description: the customField value
+          type: string
+          required: true
+        - name: customFieldValue
+          in: path
+          description: the customFieldValue value
+          type: string
+          required: true
+      produces:
+        - application/json
+      security:
+          - UserSecurity: []
+      responses:
+        '200':
+          description: |-
+            200 response
   /api/boards/{board}/custom-fields:
     get:
       operationId: get_all_custom_fields
@@ -797,8 +826,8 @@ paths:
             200 response
   /api/boards/{board}/export:
     get:
-      operationId: export
-      summary: This route is used to export the board.
+      operationId: exportJson
+      summary: This route is used to export the board to a json file format.
       description: |
         If user is already logged-in, pass loginToken as param
          "authToken": '/api/boards/:boardId/export?authToken=:token'
@@ -2078,6 +2107,9 @@ definitions:
           - dark
           - relax
           - corteza
+          - clearblue
+          - natural
+          - modern
       description:
         description: |
            The description of the board
@@ -2565,9 +2597,12 @@ definitions:
         type: string
       public:
         type: boolean
+      allowNonBoardMembers:
+        type: boolean
     required:
       - question
       - public
+      - allowNonBoardMembers
   CardsCustomfields:
     type: object
   ChecklistItems:
@@ -2662,6 +2697,7 @@ definitions:
           - number
           - date
           - dropdown
+          - currency
       settings:
         description: |
            settings of the custom field
@@ -2695,6 +2731,8 @@ definitions:
   CustomFieldsSettings:
     type: object
     properties:
+      currencyCode:
+        type: string
       dropdownItems:
         description: |
            list of drop down items objects
